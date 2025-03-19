@@ -15,7 +15,7 @@ class MicrostripLine(TransmissionLine):
     type: ClassVar[str] = "microstrip_line"
     length: float
     width: float
-    layer: Tuple[int, int] = (1, 0)  # Default layer
+    layer: Union[Tuple[int, int], str] = (1, 0)  # Default layer or layer name
     
     def to_gds(self) -> gf.Component:
         """Convert the microstrip line to a GDS component.
@@ -26,6 +26,9 @@ class MicrostripLine(TransmissionLine):
         # Create a new component
         component = gf.Component(name=f"{self.name}")
         
+        # Get the layer from PDK if available
+        layer = self.get_layer(self.layer) if hasattr(self, 'get_layer') else self.layer
+        
         # Create the microstrip line
         path = component.add_polygon(
             [
@@ -34,7 +37,7 @@ class MicrostripLine(TransmissionLine):
                 (self.length, self.width/2),
                 (0, self.width/2),
             ],
-            layer=self.layer,
+            layer=layer,
         )
         
         # Add ports
@@ -43,7 +46,7 @@ class MicrostripLine(TransmissionLine):
             center=(0, 0),
             width=self.width,
             orientation=180,
-            layer=self.layer,
+            layer=layer,
         )
         
         component.add_port(
@@ -51,7 +54,7 @@ class MicrostripLine(TransmissionLine):
             center=(self.length, 0),
             width=self.width,
             orientation=0,
-            layer=self.layer,
+            layer=layer,
         )
         
         # Update our internal ports

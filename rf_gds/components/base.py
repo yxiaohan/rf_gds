@@ -6,6 +6,9 @@ from abc import ABC, abstractmethod
 import gdsfactory as gf
 from pydantic import BaseModel, Field
 
+# Forward reference for PDK
+PDK = Any
+
 
 class Port(BaseModel):
     """Represents a port on a component."""
@@ -35,6 +38,7 @@ class Component(BaseModel, ABC):
     rotation: float = 0
     ports: Dict[str, Port] = Field(default_factory=dict)
     connections: List[Connection] = Field(default_factory=list)
+    _pdk: Optional[PDK] = None
     
     def add_port(self, name: str, position: Tuple[float, float], width: float, 
                  layer: Tuple[int, int], orientation: float = 0) -> None:
@@ -66,6 +70,39 @@ class Component(BaseModel, ABC):
         self.connections.append(
             Connection(port=port, target=target, target_port=target_port)
         )
+        
+    def set_pdk(self, pdk: PDK) -> None:
+        """Set the PDK for this component.
+        
+        Args:
+            pdk: The PDK instance
+        """
+        self._pdk = pdk
+        
+    def get_layer(self, layer_name: str) -> Tuple[int, int]:
+        """Get a layer from the PDK.
+        
+        Args:
+            layer_name: The name of the layer
+            
+        Returns:
+            A tuple (layer, datatype)
+            
+        Raises:
+            ValueError: If the PDK is not set
+            KeyError: If the layer is not found in the PDK
+        """
+        if self._pdk is None:
+            # If no PDK is set, return the layer as a tuple if it's a tuple or list
+            if isinstance(layer_name, (tuple, list)) and len(layer_name) == 2:
+                return (layer_name[0], layer_name[1])
+            raise ValueError(f"No PDK set for component {self.name}")
+        
+        # If the layer_name is already a tuple, return it as is
+        if isinstance(layer_name, (tuple, list)) and len(layer_name) == 2:
+            return (layer_name[0], layer_name[1])
+            
+        return self._pdk.get_layer(layer_name)
     
     @abstractmethod
     def to_gds(self) -> gf.Component:
