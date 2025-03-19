@@ -1,0 +1,121 @@
+# Example YAML schema for RF GDS Library
+name: example_rf_design
+technology: generic
+units: um  # micrometers
+
+# Metadata can include any additional information about the design
+metadata:
+  author: RF Designer
+  date: 2025-03-19
+  description: Example RF design with various components
+  frequency: 5GHz
+
+# Components section defines all the components in the design
+components:
+  # Microstrip transmission line
+  - name: line1
+    type: microstrip_line
+    parameters:
+      length: 100
+      width: 5
+      layer: [1, 0]
+    position: [0, 0]
+    rotation: 0
+    connections: []
+
+  # Tapered microstrip line
+  - name: taper1
+    type: tapered_microstrip_line
+    parameters:
+      length: 50
+      width_in: 5
+      width_out: 10
+      layer: [1, 0]
+    position: [100, 0]
+    rotation: 0
+    connections:
+      - port: in
+        target: line1
+        target_port: out
+
+  # CPW line
+  - name: cpw1
+    type: cpw_line
+    parameters:
+      length: 80
+      width: 10
+      gap: 5
+      ground_width: 20
+      layer: [1, 0]
+    position: [200, 0]
+    rotation: 0
+    connections:
+      - port: in
+        target: taper1
+        target_port: out
+
+  # CPW bend
+  - name: bend1
+    type: cpw_bend
+    parameters:
+      radius: 50
+      width: 10
+      gap: 5
+      ground_width: 20
+      angle: 90
+      layer: [1, 0]
+    position: [280, 0]
+    rotation: 0
+    connections:
+      - port: in
+        target: cpw1
+        target_port: out
+
+  # Spiral inductor
+  - name: inductor1
+    type: spiral_inductor
+    parameters:
+      n_turns: 3.5
+      width: 5
+      spacing: 5
+      inner_radius: 20
+      layer: [1, 0]
+    position: [280, 100]
+    rotation: 0
+    connections:
+      - port: in
+        target: bend1
+        target_port: out
+
+  # MIM capacitor
+  - name: cap1
+    type: mim_capacitor
+    parameters:
+      width: 50
+      length: 50
+      top_layer: [1, 0]
+      bottom_layer: [2, 0]
+      dielectric_layer: [3, 0]
+    position: [400, 100]
+    rotation: 0
+    connections:
+      - port: p1
+        target: inductor1
+        target_port: out
+
+  # Wilkinson power divider
+  - name: divider1
+    type: wilkinson_divider
+    parameters:
+      radius: 100
+      width: 5
+      isolation_resistor_width: 5
+      isolation_resistor_length: 20
+      layer: [1, 0]
+      resistor_layer: [2, 0]
+    position: [500, 100]
+    rotation: 0
+    connections:
+      - port: in
+        target: cap1
+        target_port: p2
