@@ -1,0 +1,37 @@
+{
+  "_comment": "This is a HUMAN-EDITED TEMPLATE of common RF constraints. Adapt keys to your ALIGN version schema.",
+  "version": 1,
+  "top_module": "top",
+  "constraints": [
+    {
+      "constraint": "SymmetricNets",
+      "nets": [["n65", "n77"]],
+      "axis": "V"
+    },
+    {
+      "constraint": "GuardRing",
+      "blocks": ["XEM1", "XCMIM"],
+      "ring_type": "p+_deepnwell",
+      "clearance": "5um"
+    },
+    {
+      "constraint": "PortLocation",
+      "ports": [
+        {"inst": "XEM1", "pin": "P1", "side": "WEST"},
+        {"inst": "XEM1", "pin": "P2", "side": "EAST"}
+      ]
+    },
+    {
+      "constraint": "NetConst",
+      "net": "n_out",
+      "width": "4um",
+      "spacing": "4um",
+      "preferred_direction": "H"
+    },
+    {
+      "constraint": "BlockDistance",
+      "pair": ["XEM1","XCMIM"],
+      "min_dist": "10um"
+    }
+  ]
+}

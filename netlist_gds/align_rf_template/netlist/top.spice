@@ -1,0 +1,44 @@
+* top.spice — ALIGN-friendly SPICE-style netlist (template)
+* Map of original ADS/EM snippet:
+*   MomCmpt:em_data   -->  XEM1 p1 p2 EM1  (hard macro OR parametric PCell for EM structure)
+*   USC_PF25_SMIM:C924 -->  XCMIM n65 n77 CMIM L=120u W=100u  (parametric MIM/MOM PCell or macro)
+*   GRM15:C930 (off-chip) --> handled as PAD interface (not on-die device), connect to PAD pin
+*   S_Param:SP1 (simulation) --> remove from layout netlist; not used by ALIGN
+
+* ----- Subcircuit library stubs -----
+* You will attach these to layout generators (PCell) OR to hard GDS macros via ALIGN's library mechanisms.
+
+* EM structure as a black-box subckt (for layout: place macro or generate geometry)
+.SUBCKT EM1 P1 P2 PARAMS: L=120u W=100u N=3 METAL=M6
+* For circuit sims you would use EM results; for layout we just expose pins.
+Rleak P1 P2 1e12
+.ENDS EM1
+
+* MIM capacitor as a parametric PCell placeholder
+.SUBCKT CMIM P N PARAMS: L=120u W=100u METAL_TOP=M4 METAL_BOT=M3
+* For sims use C value from PEX or ideal placeholder
+C0 P N 1p
+.ENDS CMIM
+
+* IO pad placeholder (to connect off-chip parts like GRM15)
+.SUBCKT PAD P
+Rpad P 0 1e12
+.ENDS PAD
+
+* ----- Top-level -----
+* Nets renamed for clarity; adjust to your naming.
+* Example: external node N__91 is broken out to a PAD.
+*         ADS EM block ports P1/P2 connect to n_in/n_out here.
+*         Replace values/params with your real ones.
+* 
+* Instantiate EM block
+XEM1  n_in n_out  EM1  L=120u W=100u N=3
+* Instantiate MIM cap (from ADS line: USC_PF25_SMIM:C924 N__65 N__77 l=120um w=100um)
+XCMIM n65 n77     CMIM L=120u W=100u
+* Off-chip cap (GRM15) side exposed by PAD; connect N__91 to PAD
+XPAD1 n91 PAD
+
+* Tie ground
+VSS 0 0 DC 0
+
+.END
